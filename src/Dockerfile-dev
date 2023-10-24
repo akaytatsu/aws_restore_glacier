@@ -1,0 +1,35 @@
+FROM golang:1.21-alpine AS base
+
+ENV GO111MODULE="on"
+ENV GOOS="linux"
+ENV CGO_ENABLED=0
+
+# System dependencies
+RUN apk add --no-cache ca-certificates curl bash
+RUN go install gotest.tools/gotestsum@latest
+RUN go install github.com/golang/mock/mockgen@v1.6.0
+RUN go install github.com/smartystreets/goconvey@latest
+
+ARG PROJECT_NAME="app"
+ARG VERSION="dev"
+ARG COMMIT="none"
+ENV CGO_ENABLED=0
+ENV GOPROXY=https://proxy.golang.org
+
+FROM base AS dev
+WORKDIR /app
+
+COPY . .
+
+RUN go mod download
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Hot reloading mod
+RUN go get -u github.com/cosmtrek/air && go install github.com/go-delve/delve/cmd/dlv@latest
+
+RUN go install github.com/cosmtrek/air@latest
+
+EXPOSE 8080
+EXPOSE 2345
+
+ENTRYPOINT ["/go/bin/air"]
