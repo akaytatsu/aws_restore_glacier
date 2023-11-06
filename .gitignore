@@ -6,6 +6,7 @@
 *.log
 tmp/
 coverage.html
+*.txt
 
 ### Go ###
 # Binaries for programs and plugins
